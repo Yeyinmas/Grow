@@ -1,7 +1,5 @@
-XXXXXXXXX
-XPRRRXRFX
-XXDRXRRRX
-XRRRRRRRX
-XRRXXRXRX
-XERRRVXRX
-XXXXXXXXX
+##############
+#...D#.....G.#
+#P##.#.##S##F#
+#.##.#.#######
+#E##..D#######

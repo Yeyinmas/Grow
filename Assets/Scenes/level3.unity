@@ -153,7 +153,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c573000c1115ac4eabe85e948bf4f47, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  levelFile: {fileID: 4900000, guid: 81c3ea8498b749a459ecf945937fc6bb, type: 3}
+  levelFile: {fileID: 4900000, guid: 0f6abcd76f0ae354d8cc7a11c3df8f35, type: 3}
   levelResourceName: 
   playerPrefab: {fileID: 3950823882495281191, guid: e649c7d500dca314b9a45eb46f84a07d, type: 3}
   monsterPrefab: {fileID: 362031607935976088, guid: ef7483843d9a2324eb4b2084b08dd83d, type: 3}
@@ -177,13 +177,14 @@ MonoBehaviour:
   player: {fileID: 0}
   monsters: []
   bushCount: 1
-  trapCount: 0
+  trapCount: 1
   bushGrowTurns: 3
   trapGrowTurns: 2
   trapHoldTurns: 2
+  stageDelay: 0.1
   monsterMoveDelay: 0.15
   defaultVineLength: 4
-  nextSceneName: level2
+  nextSceneName: level1
   winDelay: 1.5
 --- !u!4 &6820445
 Transform:

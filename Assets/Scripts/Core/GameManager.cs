@@ -41,11 +41,16 @@ namespace GrowGame
         [Header("道具配置")]
         public int bushCount = 2;      // 灌木丛初始数量
         public int trapCount = 1;      // 困怪陷阱初始数量
-        public int bushGrowTurns = 2;  // 灌木丛生长 X 回合后堵路
+        public int bushGrowTurns = 3;  // 灌木丛生长 X 回合后堵路
+        public int trapGrowTurns = 2;  // 陷阱生长 X 回合后成熟（成熟前被怪物踩过会被踩掉）
         public int trapHoldTurns = 2;  // 陷阱困住怪物 X 回合
 
         [Header("流程")]
-        public float monsterMoveDelay = 0.15f; // 怪物行动之间的展示延迟（秒）
+        [Tooltip("阶段之间的展示间隔（秒）：玩家移动 → 植物生长 → 敌人移动 之间各等待该时长，期间玩家输入无效。")]
+        public float stageDelay = 0.1f;
+
+        [Tooltip("每个怪物行动之间的展示间隔（秒）。")]
+        public float monsterMoveDelay = 0.15f;
 
         [Header("藤蔓")]
         [Tooltip("藤蔓源未在关卡文本中指定长度时，使用的默认生长格数。")]
@@ -214,11 +219,14 @@ namespace GrowGame
             else
             {
                 trapCount--;
+                item.GrowTurns = trapGrowTurns; // 陷阱也需要生长时间
             }
 
             cell.PlacedItem = item;
             item.Visual = CreateItemVisual(item);
             placedItems.Add(item);
+
+            StartCoroutine(MonsterPhase()); // 使用道具同样消耗一回合
             return true;
         }
 
@@ -247,8 +255,13 @@ namespace GrowGame
 
         IEnumerator MonsterPhase()
         {
-            Phase = GamePhase.MonsterTurn;
-            yield return new WaitForSeconds(monsterMoveDelay);
+            Phase = GamePhase.MonsterTurn; // 立刻进入怪物回合，屏蔽玩家输入
+
+            // 行动顺序：玩家动 → 植物长一回合 → 敌人动，阶段之间各停 stageDelay 秒
+            yield return new WaitForSeconds(stageDelay);
+            GrowPlants();
+
+            yield return new WaitForSeconds(stageDelay);
 
             foreach (var m in monsters)
             {
@@ -274,31 +287,45 @@ namespace GrowGame
                     yield break;
                 }
 
-                // 踩入陷阱 -> 被困并消耗陷阱
+                // 敌人经过该格：处理格子上的植物
                 var cell = Grid[n.x, n.y];
-                if (cell.PlacedItem != null && cell.PlacedItem.Kind == ItemKind.Trap && !cell.PlacedItem.Triggered)
+                var item = cell.PlacedItem;
+                if (item != null)
                 {
-                    cell.PlacedItem.Triggered = true;
-                    m.TrappedTurns = trapHoldTurns;
-                    RemoveItem(cell.PlacedItem);
+                    if (item.GrowTurns > 0)
+                    {
+                        // 未成熟的植物（灌木丛/陷阱）被踩过：被踩掉，该格变回普通空地（.），不再是可种植的田地（D）
+                        RemoveItem(item);
+                        cell.SetWalkable();
+                    }
+                    else if (item.Kind == ItemKind.Trap && !item.Triggered)
+                    {
+                        // 成熟陷阱：踩入即触发，困住怪物并消耗陷阱，该格变回空地（.）
+                        item.Triggered = true;
+                        m.TrappedTurns = trapHoldTurns;
+                        RemoveItem(item);
+                        cell.SetWalkable();
+                    }
                 }
+
+                yield return new WaitForSeconds(monsterMoveDelay); // 每个怪物之间的小间隔
             }
 
-            EndRound();
             BeginPlayerTurn();
         }
 
-        // ---------- 回合推进：灌木丛生长 ----------
+        // ---------- 回合推进：植物生长（在敌人移动之前） ----------
 
-        void EndRound()
+        void GrowPlants()
         {
             for (int i = placedItems.Count - 1; i >= 0; i--)
             {
                 var it = placedItems[i];
-                if (it.Kind != ItemKind.Bush) continue;
-
                 it.GrowTurns--;
-                if (it.GrowTurns <= 0)
+                if (it.GrowTurns > 0) continue; // 尚未成熟，继续生长
+
+                // 成熟：灌木丛堵路；陷阱保持原样，等怪物踩入触发
+                if (it.Kind == ItemKind.Bush)
                 {
                     Grid[it.Pos.x, it.Pos.y].SetBlocked(true); // 堵住该格
                     placedItems.RemoveAt(i);

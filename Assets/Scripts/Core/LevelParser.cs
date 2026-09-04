@@ -23,7 +23,7 @@ namespace GrowGame
                 // 去掉换行符与首尾空白
                 var line = raw.TrimEnd('\r', '\n').Trim();
                 if (string.IsNullOrEmpty(line)) continue;      // 跳过空行
-                if (line.StartsWith("#")) continue;             // 支持 # 注释行
+                if (line.StartsWith("//")) continue;            // 支持 // 注释行（# 已被用作墙）
                 lines.Add(line);
             }
 
@@ -45,10 +45,13 @@ namespace GrowGame
                 for (int x = 0; x < width; x++)
                 {
                     // 行不足的地方视为障碍，保证地图矩形完整
-                    char ch = x < line.Length ? line[x] : 'X';
+                    char ch = x < line.Length ? line[x] : '#';
                     switch (ch)
                     {
+                        // 道路与墙：. 和 # 是当前格式；R / X 为兼容旧文件保留
+                        case '.': data.Tiles[x, y] = TileType.Walkable; break;
                         case 'R': data.Tiles[x, y] = TileType.Walkable; break;
+                        case '#': data.Tiles[x, y] = TileType.Obstacle; break;
                         case 'X': data.Tiles[x, y] = TileType.Obstacle; break;
                         case 'S': data.Tiles[x, y] = TileType.Switch; break;
                         case 'G': data.Tiles[x, y] = TileType.Door; break;

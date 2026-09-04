@@ -69,5 +69,14 @@ namespace GrowGame
             if (vine)
                 _renderer.sprite = SpriteLibrary.Get("tile_vine", new Color(0.25f, 0.55f, 0.20f));
         }
+
+        /// <summary>把该格变回普通可通行地块（空地 .），并刷新显示。用于未成熟植物被敌人踩掉后的还原。</summary>
+        public void SetWalkable()
+        {
+            Type = TileType.Walkable;
+            IsBlocked = false;
+            IsVine = false;
+            _renderer.sprite = SpriteLibrary.Get("tile_floor", new Color(0.18f, 0.20f, 0.24f));
+        }
     }
 }

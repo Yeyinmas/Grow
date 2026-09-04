@@ -1,4 +1,4 @@
-XXXXXXXXXXXXXXXXX
-XXXXXRRRXXXSXXXXX
-XXXXXRXDXXXRXXXXX
-ERRPRRDRRRRRRRGRF
+#################
+#####...###S#####
+#####.#.###.#####
+E..P..D.......G.F
