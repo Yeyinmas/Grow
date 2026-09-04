@@ -1,0 +1,73 @@
+using UnityEngine;
+
+namespace GrowGame
+{
+    /// <summary>
+    /// 地图上的一个格子。挂在由 MapGenerator 生成的每个格子对象上。
+    /// 负责自身类型、可通行状态以及显示。
+    /// </summary>
+    public class GridCell : MonoBehaviour
+    {
+        public Vector2Int Coord;
+        public TileType Type;
+
+        /// <summary>格子上放置的道具（灌木丛 / 陷阱），无则 null。</summary>
+        public PlacedItem PlacedItem;
+
+        /// <summary>门是否已打开（仅 Type == Door 时有效）。</summary>
+        public bool IsDoorOpen;
+
+        /// <summary>灌木丛生长完成后，该格被堵住。</summary>
+        public bool IsBlocked;
+
+        /// <summary>藤蔓生长到该格后，该格被堵住（藤蔓占用的格子）。</summary>
+        public bool IsVine;
+
+        private SpriteRenderer _renderer;
+
+        /// <summary>该格当前是否可通行。</summary>
+        public bool IsWalkable
+        {
+            get
+            {
+                if (Type == TileType.Obstacle) return false;
+                if (Type == TileType.VineSource) return false;
+                if (Type == TileType.Door) return IsDoorOpen;
+                if (IsBlocked) return false;
+                if (IsVine) return false;
+                return true;
+            }
+        }
+
+        private void Awake()
+        {
+            _renderer = GetComponent<SpriteRenderer>();
+            if (_renderer == null) _renderer = gameObject.AddComponent<SpriteRenderer>();
+        }
+
+        public void SetVisual(Sprite sprite) => _renderer.sprite = sprite;
+
+        public void SetDoorOpen(bool open)
+        {
+            if (Type != TileType.Door) return;
+            IsDoorOpen = open;
+            _renderer.sprite = SpriteLibrary.Get(
+                open ? "tile_door_open" : "tile_door",
+                open ? new Color(0.30f, 0.60f, 0.35f) : new Color(0.60f, 0.35f, 0.15f));
+        }
+
+        public void SetBlocked(bool blocked)
+        {
+            IsBlocked = blocked;
+            if (blocked)
+                _renderer.sprite = SpriteLibrary.Get("tile_obstacle", new Color(0.05f, 0.05f, 0.06f));
+        }
+
+        public void SetVine(bool vine)
+        {
+            IsVine = vine;
+            if (vine)
+                _renderer.sprite = SpriteLibrary.Get("tile_vine", new Color(0.25f, 0.55f, 0.20f));
+        }
+    }
+}
