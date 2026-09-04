@@ -55,15 +55,11 @@ namespace GrowGame
         public string nextSceneName = ""; // 留空则加载 Build Settings 中的下一个场景
         public float winDelay = 1.5f;
 
-        [Header("提示")]
-        public bool showMonsterPreview = true; // 是否显示怪物下一步的预览
-
         public GamePhase Phase { get; private set; } = GamePhase.PlayerTurn;
         public int Turn { get; private set; } = 0;
 
         private readonly List<PlacedItem> placedItems = new List<PlacedItem>();
         private readonly List<Vector2Int> doorCells = new List<Vector2Int>();
-        private readonly List<GameObject> previewMarkers = new List<GameObject>();
 
         // 藤蔓运行时状态：与 vineSources 平行，记录每个藤蔓已生长格数
         private readonly List<VineSourceData> vines = new List<VineSourceData>();
@@ -77,6 +73,17 @@ namespace GrowGame
                 return;
             }
             Instance = this;
+        }
+
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.R)) Restart();
+        }
+
+        /// <summary>重新加载当前场景，重开本关。</summary>
+        public void Restart()
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
 
         // ---------- 坐标工具 ----------
@@ -139,7 +146,6 @@ namespace GrowGame
         {
             Phase = GamePhase.PlayerTurn;
             Turn++;
-            RefreshPreview();
 
             if (!HasAnyLegalMove())
             {
@@ -386,36 +392,6 @@ namespace GrowGame
                 if (next < SceneManager.sceneCountInBuildSettings)
                     SceneManager.LoadScene(next);
             }
-        }
-
-        // ---------- 怪物下一步预览 ----------
-
-        void RefreshPreview()
-        {
-            ClearPreview();
-            if (!showMonsterPreview) return;
-
-            foreach (var m in monsters)
-            {
-                if (m == null || m.TrappedTurns > 0) continue;
-
-                Vector2Int? next = Pathfinding.NextStepTowards(m.Coord, player.Coord, Width, Height, IsWalkable);
-                if (next == null) continue;
-
-                var go = new GameObject("MonsterPreview");
-                go.transform.position = CellToWorld(next.Value);
-                ApplyVisualScale(go);
-                var sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = SpriteLibrary.Get("monster_preview", new Color(1f, 0.3f, 0.3f, 0.4f));
-                sr.sortingOrder = 2;
-                previewMarkers.Add(go);
-            }
-        }
-
-        void ClearPreview()
-        {
-            foreach (var g in previewMarkers) if (g != null) Destroy(g);
-            previewMarkers.Clear();
         }
     }
 }

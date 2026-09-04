@@ -15,4 +15,3 @@ player           玩家
 monster          敌人
 item_bush        灌木丛（道具一）
 item_trap        困怪陷阱（道具二）
-monster_preview  怪物下一步预览标记
