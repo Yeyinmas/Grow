@@ -3,16 +3,19 @@ using UnityEngine;
 namespace GrowGame
 {
     /// <summary>
-    /// 道具栏 HUD：左上角用图标显示可放置的道具，图标右侧为剩余数量。
-    /// 图标与地图里用的是同一套 key（item_bush / item_trap）；
-    /// 石楠花（灌木丛）暂时没有图片，会自动退回纯色方块。
+    /// 道具栏 HUD：左上角竖向排列道具格，图标右侧为剩余数量。
+    /// 第 1/2 格是灌木丛、陷阱；第 3 格是梳子（捡起开关后显示，靠近仙人掌自动使用后消失）。
     /// </summary>
     public class GameUI : MonoBehaviour
     {
         const float Slot = 56f;   // 图标尺寸
         const float CountW = 44f; // 数量列宽
         const float Pad = 12f;    // 边距
-        const float Gap = 14f;    // 两个道具之间间隔
+        const float Gap = 10f;    // 两个道具格之间间隔
+
+        static readonly Color BushColor = new Color(0.25f, 0.70f, 0.30f);
+        static readonly Color TrapColor = new Color(0.80f, 0.50f, 0.20f);
+        static readonly Color CombColor = new Color(1.00f, 0.85f, 0.30f);
 
         GUIStyle _countStyle;
         GUIStyle _hotkeyStyle;
@@ -67,11 +70,14 @@ namespace GrowGame
             // 回合数
             GUI.Label(new Rect(Pad, Pad, 160f, 22f), $"回合 {gm.Turn}", _hintStyle);
 
-            // 道具栏
+            // 道具栏：竖向排列
+            float barX = Pad;
             float barY = Pad + 26f;
             float slotW = Slot + CountW;
-            DrawSlot(new Rect(Pad, barY, slotW, Slot), "item_bush", gm.bushCount, "1", new Color(0.25f, 0.70f, 0.30f));
-            DrawSlot(new Rect(Pad + slotW + Gap, barY, slotW, Slot), "item_trap", gm.trapCount, "2", new Color(0.80f, 0.50f, 0.20f));
+
+            DrawItemSlot(new Rect(barX, barY, slotW, Slot), "item_bush", gm.bushCount, "1", BushColor);
+            DrawItemSlot(new Rect(barX, barY + Slot + Gap, slotW, Slot), "item_trap", gm.trapCount, "2", TrapColor);
+            DrawCombSlot(new Rect(barX, barY + (Slot + Gap) * 2f, slotW, Slot), gm.HasComb);
 
             // 底部提示
             GUI.Label(new Rect(Pad, Screen.height - 30f, 400f, 22f), "站在 D 格上按 1 / 2 放置 · R 重开", _hintStyle);
@@ -83,7 +89,7 @@ namespace GrowGame
                 GUI.Label(new Rect(0f, Screen.height / 2f - 40f, Screen.width, 80f), "失败！", _loseStyle);
         }
 
-        void DrawSlot(Rect rect, string key, int count, string hotkey, Color fallback)
+        void DrawItemSlot(Rect rect, string key, int count, string hotkey, Color fallback)
         {
             GUI.Box(rect, GUIContent.none);
 
@@ -101,6 +107,18 @@ namespace GrowGame
 
             // 数量（右侧）
             GUI.Label(new Rect(rect.x + Slot, rect.y, CountW, Slot), $"×{count}", _countStyle);
+        }
+
+        void DrawCombSlot(Rect rect, bool hasComb)
+        {
+            GUI.Box(rect, GUIContent.none);
+
+            // 持有梳子才显示（否则为空格）
+            if (!hasComb) return;
+
+            var sp = SpriteLibrary.Get("tile_switch", CombColor);
+            var iconRect = new Rect(rect.x + 4f, rect.y + 4f, Slot - 8f, Slot - 8f);
+            GUI.DrawTexture(iconRect, sp != null && sp.texture != null ? sp.texture : Texture2D.whiteTexture);
         }
     }
 }

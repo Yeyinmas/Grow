@@ -55,16 +55,29 @@ namespace GrowGame
         [Tooltip("每个怪物行动之间的展示间隔（秒）。")]
         public float monsterMoveDelay = 0.15f;
 
+        [Header("梳子 / 仙人掌")]
+        [Tooltip("持梳子时，靠近仙人掌（门）多少格内会自动使用（曼哈顿距离；1 = 上下左右相邻四格）。")]
+        public int combProximity = 1;
+
         [Header("藤蔓")]
         [Tooltip("藤蔓源未在关卡文本中指定长度时，使用的默认生长格数。")]
         public int defaultVineLength = 4;
 
+        [Header("音乐")]
+        [Tooltip("背景音乐文件名（Assets/Resources/Music/{name}），留空则不播放。")]
+        public string musicClipName = "Project";
+
         [Header("场景切换")]
         public string nextSceneName = ""; // 留空则加载 Build Settings 中的下一个场景
+        [Tooltip("按 Esc 返回的开始菜单场景名。")]
+        public string menuSceneName = "menu";
         public float winDelay = 1.5f;
 
         public GamePhase Phase { get; private set; } = GamePhase.PlayerTurn;
         public int Turn { get; private set; } = 0;
+
+        /// <summary>玩家是否已捡起梳子（开关）。</summary>
+        public bool HasComb { get; private set; }
 
         private readonly List<PlacedItem> placedItems = new List<PlacedItem>();
         private readonly List<Vector2Int> doorCells = new List<Vector2Int>();
@@ -83,9 +96,17 @@ namespace GrowGame
             Instance = this;
         }
 
+        private void Start()
+        {
+            if (!string.IsNullOrEmpty(musicClipName))
+                AudioManager.PlayMusic(musicClipName);
+        }
+
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.R)) Restart();
+            if (Input.GetKeyDown(KeyCode.Escape) && !string.IsNullOrEmpty(menuSceneName))
+                SceneManager.LoadScene(menuSceneName);
         }
 
         /// <summary>重新加载当前场景，重开本关。</summary>
@@ -194,8 +215,13 @@ namespace GrowGame
             }
 
             player.MoveTo(target);
+            AudioManager.Play("player_step");
 
-            if (Grid[target.x, target.y].Type == TileType.Switch) OpenAllDoors();
+            // 捡起梳子（原开关）
+            if (Grid[target.x, target.y].Type == TileType.Switch) PickUpComb();
+
+            // 靠近仙人掌时自动使用梳子
+            TryUseComb();
 
             if (Grid[target.x, target.y].Type == TileType.Goal)
             {
@@ -235,6 +261,7 @@ namespace GrowGame
             cell.PlacedItem = item;
             item.Visual = CreateItemVisual(item);
             placedItems.Add(item);
+            AudioManager.Play("plant_place");
 
             StartCoroutine(MonsterPhase()); // 使用道具同样消耗一回合
             return true;
@@ -307,6 +334,8 @@ namespace GrowGame
                     yield break;
                 }
 
+                AudioManager.Play("monster_step");
+
                 // 敌人经过该格：处理格子上的植物
                 var cell = Grid[n.x, n.y];
                 var item = cell.PlacedItem;
@@ -321,6 +350,7 @@ namespace GrowGame
                     else if (item.Kind == ItemKind.Trap && !item.Triggered)
                     {
                         // 成熟陷阱：踩入即触发，困住怪物并消耗陷阱，该格变回空地（.）
+                        AudioManager.Play("trap_trigger"); // 大叔吃小土豆
                         item.Triggered = true;
                         m.TrappedTurns = trapHoldTurns;
                         RemoveItem(item);
@@ -343,6 +373,8 @@ namespace GrowGame
                 var it = placedItems[i];
                 it.GrowTurns--;
                 if (it.GrowTurns > 0) continue; // 尚未成熟，继续生长
+
+                if (it.GrowTurns == 0) AudioManager.Play("plant_grow"); // 刚好长成（归零）时播放
 
                 // 成熟：灌木丛堵路并显示石楠花成品；陷阱换成成品外观，等怪物踩入触发
                 if (it.Kind == ItemKind.Bush)
@@ -438,12 +470,41 @@ namespace GrowGame
             Grid[c.x, c.y].SetVine(SpriteLibrary.Get("tile_vine_source", new Color(0.55f, 0.30f, 0.15f)), VineRotation(dir));
         }
 
-        // ---------- 门 / 开关 ----------
+        // ---------- 梳子 / 仙人掌 ----------
 
-        void OpenAllDoors()
+        /// <summary>捡起梳子：梳子从地图上消失，玩家获得梳子（道具栏第三格显示）。</summary>
+        void PickUpComb()
         {
-            foreach (var c in doorCells) Grid[c.x, c.y].SetDoorOpen(true);
+            if (HasComb) return;
+            HasComb = true;
+            Grid[player.Coord.x, player.Coord.y].SetWalkable(); // 梳子所在格变回普通地面
         }
+
+        /// <summary>若持有梳子且靠近仙人掌（门），自动使用梳子把仙人掌打开。</summary>
+        void TryUseComb()
+        {
+            if (!HasComb) return;
+
+            bool used = false;
+            foreach (var c in doorCells)
+            {
+                var cell = Grid[c.x, c.y];
+                if (cell.IsDoorOpen) continue; // 已打开
+                if (Manhattan(player.Coord, c) <= combProximity)
+                {
+                    cell.SetDoorOpen(true); // 仙人掌打开
+                    used = true;
+                }
+            }
+
+            if (used)
+            {
+                HasComb = false;
+                AudioManager.Play("comb_return"); // 梳子还给仙人掌
+            }
+        }
+
+        static int Manhattan(Vector2Int a, Vector2Int b) => Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
 
         // ---------- 胜负与场景切换 ----------
 
@@ -451,6 +512,7 @@ namespace GrowGame
         {
             if (Phase == GamePhase.Won) return;
             Phase = GamePhase.Won;
+            AudioManager.Play("win");
             Debug.Log("胜利！到达终点。");
             StartCoroutine(LoadNextSceneAfterDelay());
         }
@@ -459,7 +521,16 @@ namespace GrowGame
         {
             if (Phase == GamePhase.Lost) return;
             Phase = GamePhase.Lost;
+            AudioManager.Play("lose"); // 大叔抓到
             Debug.Log("失败：" + reason);
+            StartCoroutine(PlayBroScream());
+        }
+
+        // 被抓住时：先放大叔抓到，间隔一小会儿再放土豆惨叫
+        IEnumerator PlayBroScream()
+        {
+            yield return new WaitForSeconds(0.5f);
+            AudioManager.Play("bro_scream");
         }
 
         IEnumerator LoadNextSceneAfterDelay()
