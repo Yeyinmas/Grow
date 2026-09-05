@@ -2,15 +2,16 @@
 图片必须是正方形，文件名（不含扩展名）对应下面的 key，代码会自动按名字加载。
 没有放对应图片时，游戏会用纯色方块代替，不影响运行。
 
-tile_floor       可达地块 R
-tile_obstacle    障碍物 X
+tile_floor       可达地块 .
+tile_obstacle    障碍物 #
 tile_switch      开关 S
 tile_door        门 G（关闭）
 tile_door_open   门 G（打开）
 tile_item        道具使用地 D
+tile_item_wait   植物生长中（未成熟）
 tile_goal        终点 F
-tile_vine_source 藤蔓源 V
-tile_vine        长出的藤蔓
+tile_vine_source 藤蔓尖尖（显示在藤蔓最顶端，默认朝上）
+tile_vine        长出的藤蔓（身体，默认朝上）
 player           玩家
 monster          敌人
 item_bush        灌木丛（道具一）

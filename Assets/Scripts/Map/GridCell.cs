@@ -24,6 +24,7 @@ namespace GrowGame
         public bool IsVine;
 
         private SpriteRenderer _renderer;
+        private SpriteRenderer _vineRenderer; // 藤蔓叠加层（叠在 floor 之上）
 
         /// <summary>该格当前是否可通行。</summary>
         public bool IsWalkable
@@ -63,11 +64,28 @@ namespace GrowGame
                 _renderer.sprite = SpriteLibrary.Get("tile_obstacle", new Color(0.05f, 0.05f, 0.06f));
         }
 
-        public void SetVine(bool vine)
+        /// <summary>灌木丛成熟：堵住该格（不可通行），底板换成地板（上面会盖成品贴图）。</summary>
+        public void SetMatureBush()
         {
-            IsVine = vine;
-            if (vine)
-                _renderer.sprite = SpriteLibrary.Get("tile_vine", new Color(0.25f, 0.55f, 0.20f));
+            IsBlocked = true;
+            _renderer.sprite = SpriteLibrary.Get("tile_floor", new Color(0.18f, 0.20f, 0.24f));
+        }
+
+        /// <summary>在 floor 之上叠加藤蔓贴图（不替换 floor），并按生长方向旋转。</summary>
+        public void SetVine(Sprite sprite, float rotationZ)
+        {
+            IsVine = true;
+            if (_vineRenderer == null)
+            {
+                var go = new GameObject("VineOverlay");
+                go.transform.SetParent(transform, false);
+                go.transform.localPosition = Vector3.zero;
+                go.transform.localScale = Vector3.one;
+                _vineRenderer = go.AddComponent<SpriteRenderer>();
+                _vineRenderer.sortingOrder = 1; // 叠在格子基础贴图之上
+            }
+            _vineRenderer.sprite = sprite;
+            _vineRenderer.transform.localRotation = Quaternion.Euler(0f, 0f, rotationZ);
         }
 
         /// <summary>把该格变回普通可通行地块（空地 .），并刷新显示。用于未成熟植物被敌人踩掉后的还原。</summary>

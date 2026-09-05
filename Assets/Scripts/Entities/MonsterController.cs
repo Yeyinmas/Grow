@@ -28,7 +28,7 @@ namespace GrowGame
         {
             Coord = c;
             if (GameManager.Instance != null)
-                transform.position = GameManager.Instance.CellToWorld(c);
+                transform.position = GameManager.Instance.CharacterWorld(c);
         }
     }
 }

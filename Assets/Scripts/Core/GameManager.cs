@@ -35,6 +35,9 @@ namespace GrowGame
         public float spriteScale = 1f;
 
         [Header("实体")]
+        [Tooltip("玩家/怪物贴图相对格子中心向上偏移的格数（角色比格子高，往上移一点让脚踩在格子上）。")]
+        public float characterYOffset = 0.2f;
+
         public PlayerController player;
         public List<MonsterController> monsters = new List<MonsterController>();
 
@@ -96,6 +99,9 @@ namespace GrowGame
         public Vector3 CellToWorld(Vector2Int c) => new Vector3(c.x * tileSize, -c.y * tileSize, 0f);
         public Vector3 CellToWorld(int x, int y) => new Vector3(x * tileSize, -y * tileSize, 0f);
 
+        /// <summary>角色贴图的世界坐标：在格子中心基础上向上偏移 characterYOffset 格。</summary>
+        public Vector3 CharacterWorld(Vector2Int c) => CellToWorld(c) + new Vector3(0f, characterYOffset * tileSize, 0f);
+
         /// <summary>按 spriteScale 缩放物体，让方块视觉大小可调。</summary>
         public void ApplyVisualScale(GameObject go)
         {
@@ -141,6 +147,10 @@ namespace GrowGame
                 vines.Add(v);
                 vineGrown.Add(0);
             }
+
+            // 藤蔓源所在格：floor 之上叠藤蔓身体
+            foreach (var v in vines)
+                SetVineBody(v.Pos, v.Direction);
 
             BeginPlayerTurn();
         }
@@ -237,15 +247,25 @@ namespace GrowGame
             ApplyVisualScale(go);
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sortingOrder = 1;
+            sr.sprite = SpriteLibrary.Get("tile_item_wait", new Color(0.45f, 0.72f, 0.35f)); // 刚种下：生长中的样子
+            return go;
+        }
+
+        /// <summary>植物成熟后换成成品贴图。</summary>
+        void ShowMatureItem(PlacedItem item)
+        {
+            if (item.Visual == null) return;
+            var sr = item.Visual.GetComponent<SpriteRenderer>();
+            if (sr == null) return;
             if (item.Kind == ItemKind.Bush)
                 sr.sprite = SpriteLibrary.Get("item_bush", new Color(0.25f, 0.70f, 0.30f));
             else
                 sr.sprite = SpriteLibrary.Get("item_trap", new Color(0.80f, 0.50f, 0.20f));
-            return go;
         }
 
         void RemoveItem(PlacedItem item)
         {
+            placedItems.Remove(item); // 从生长列表移除，防止被踩掉的植物之后又“成熟”堵路
             if (item.Visual != null) Destroy(item.Visual);
             var cell = Grid[item.Pos.x, item.Pos.y];
             if (cell != null && cell.PlacedItem == item) cell.PlacedItem = null;
@@ -324,12 +344,16 @@ namespace GrowGame
                 it.GrowTurns--;
                 if (it.GrowTurns > 0) continue; // 尚未成熟，继续生长
 
-                // 成熟：灌木丛堵路；陷阱保持原样，等怪物踩入触发
+                // 成熟：灌木丛堵路并显示石楠花成品；陷阱换成成品外观，等怪物踩入触发
                 if (it.Kind == ItemKind.Bush)
                 {
-                    Grid[it.Pos.x, it.Pos.y].SetBlocked(true); // 堵住该格
-                    placedItems.RemoveAt(i);
-                    RemoveItem(it);
+                    Grid[it.Pos.x, it.Pos.y].SetMatureBush(); // 堵住该格，底板换成地板
+                    ShowMatureItem(it);                        // 换成石楠花成品贴图
+                    placedItems.RemoveAt(i);                   // 之后不再参与生长
+                }
+                else
+                {
+                    ShowMatureItem(it); // 陷阱成熟：换成成品贴图
                 }
             }
 
@@ -351,7 +375,14 @@ namespace GrowGame
                 // 仅当下一格是可达节点（道路），且没被玩家/怪物占用时才生长
                 if (!CanVineGrow(next)) continue;
 
-                Grid[next.x, next.y].SetVine(true);
+                // 旧的尖端退化为藤蔓身体，新格成为新的尖端
+                if (vineGrown[i] > 0)
+                {
+                    Vector2Int prevTip = v.Pos + DirectionVec(v.Direction) * vineGrown[i];
+                    SetVineBody(prevTip, v.Direction);
+                }
+
+                SetVineTip(next, v.Direction);
                 vineGrown[i]++;
             }
         }
@@ -379,6 +410,32 @@ namespace GrowGame
                 case VineDirection.Down:  return new Vector2Int(0, 1);
                 default:                  return Vector2Int.zero;
             }
+        }
+
+        // ---------- 藤蔓渲染 ----------
+
+        /// <summary>藤蔓贴图默认朝上，按生长方向旋转：上 0°、左 90°、右 -90°、下 180°。</summary>
+        static float VineRotation(VineDirection d)
+        {
+            switch (d)
+            {
+                case VineDirection.Up:    return 0f;
+                case VineDirection.Left:  return 90f;
+                case VineDirection.Right: return -90f;
+                case VineDirection.Down:  return 180f;
+                default:                  return 0f;
+            }
+        }
+
+        void SetVineBody(Vector2Int c, VineDirection dir)
+        {
+            Grid[c.x, c.y].SetVine(SpriteLibrary.Get("tile_vine", new Color(0.25f, 0.55f, 0.20f)), VineRotation(dir));
+        }
+
+        void SetVineTip(Vector2Int c, VineDirection dir)
+        {
+            // tile_vine_source 图其实是藤蔓尖尖，朝向生长方向
+            Grid[c.x, c.y].SetVine(SpriteLibrary.Get("tile_vine_source", new Color(0.55f, 0.30f, 0.15f)), VineRotation(dir));
         }
 
         // ---------- 门 / 开关 ----------

@@ -160,6 +160,7 @@ MonoBehaviour:
   cam: {fileID: 1890878847}
   autoFitCamera: 1
   cameraPadding: 1.5
+  backgroundTint: {r: 1, g: 0.8666667, b: 0.6509804, a: 1}
 --- !u!114 &6820444
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -174,6 +175,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tileSize: 1
   spriteScale: 1
+  characterYOffset: 0.2
   player: {fileID: 0}
   monsters: []
   bushCount: 1
@@ -181,6 +183,7 @@ MonoBehaviour:
   bushGrowTurns: 3
   trapGrowTurns: 2
   trapHoldTurns: 2
+  stageDelay: 0.1
   monsterMoveDelay: 0.15
   defaultVineLength: 4
   nextSceneName: level2
@@ -280,7 +283,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 1, g: 0.8666667, b: 0.6509804, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0

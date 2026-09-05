@@ -131,7 +131,8 @@ E..P..D.......G.F
 
 我会用到这些 key（详见 `Assets/Resources/Sprites/说明.txt`）：
 `tile_floor`、`tile_obstacle`、`tile_switch`、`tile_door`、`tile_door_open`、
-`tile_item`、`tile_goal`、`player`、`monster`、`item_bush`、`item_trap`、`monster_preview`。
+`tile_item`、`tile_item_wait`、`tile_goal`、`tile_vine_source`、`tile_vine`、
+`player`、`monster`、`item_bush`、`item_trap`、`monster_preview`。
 
 ---
 
@@ -145,7 +146,7 @@ E..P..D.......G.F
 
 ## 七、核心规则说明（与代码实现对应）
 
-- **回合**：行动顺序为「玩家行动 → 植物长一回合 → 怪物依次移动（每个怪物一步）→ 回合数 +1」，各阶段之间有约 0.5 秒停顿（期间玩家输入无效，方便后续加动画）。
+- **回合**：行动顺序为「玩家行动 → 植物长一回合 → 怪物依次移动（每个怪物一步）→ 回合数 +1」，各阶段之间有 `Stage Delay` 秒停顿（期间玩家输入无效，方便后续加动画）。
 - **玩家**：不能原地等待，每回合必须行动——移动一步，或站在 `D` 格放置一个道具；两者都会消耗本回合。
 - **被困**：玩家四周没有可走的格子时，判定失败。
 - **被抓**：怪物走到玩家所在格，判定失败。

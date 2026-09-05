@@ -22,6 +22,10 @@ namespace GrowGame
         public bool autoFitCamera = true; // 自动居中并调整视野
         public float cameraPadding = 1.5f;
 
+        [Header("背景")]
+        [Tooltip("整张地图的背景图（Resources/Sprites/background），用该颜色叠加；DBDBDB 即把图略微压暗。")]
+        public Color backgroundTint = new Color(255f / 255f, 221f / 255f, 166f / 255f, 1f);
+
         private void Start()
         {
             Generate();
@@ -81,6 +85,7 @@ namespace GrowGame
             foreach (var e in data.EnemyStarts)
                 monsters.Add(SpawnMonster(gm, e));
 
+            CreateBackground(data.Width, data.Height, ts);
             FitCamera(data.Width, data.Height, ts);
             gm.Setup(cells, player, monsters, data.VineSources);
         }
@@ -90,7 +95,7 @@ namespace GrowGame
             PlayerController pc;
             if (playerPrefab != null)
             {
-                var go = Instantiate(playerPrefab, gm.CellToWorld(pos), Quaternion.identity);
+                var go = Instantiate(playerPrefab, gm.CharacterWorld(pos), Quaternion.identity);
                 gm.ApplyVisualScale(go);
                 pc = go.GetComponent<PlayerController>();
                 if (pc == null) pc = go.AddComponent<PlayerController>();
@@ -98,7 +103,7 @@ namespace GrowGame
             else
             {
                 var go = new GameObject("Player");
-                go.transform.position = gm.CellToWorld(pos);
+                go.transform.position = gm.CharacterWorld(pos);
                 gm.ApplyVisualScale(go);
                 pc = go.AddComponent<PlayerController>();
             }
@@ -112,7 +117,7 @@ namespace GrowGame
             MonsterController mc;
             if (monsterPrefab != null)
             {
-                var go = Instantiate(monsterPrefab, gm.CellToWorld(pos), Quaternion.identity);
+                var go = Instantiate(monsterPrefab, gm.CharacterWorld(pos), Quaternion.identity);
                 gm.ApplyVisualScale(go);
                 mc = go.GetComponent<MonsterController>();
                 if (mc == null) mc = go.AddComponent<MonsterController>();
@@ -120,7 +125,7 @@ namespace GrowGame
             else
             {
                 var go = new GameObject("Monster");
-                go.transform.position = gm.CellToWorld(pos);
+                go.transform.position = gm.CharacterWorld(pos);
                 gm.ApplyVisualScale(go);
                 mc = go.AddComponent<MonsterController>();
             }
@@ -138,7 +143,7 @@ namespace GrowGame
                 case TileType.Door:         return SpriteLibrary.Get("tile_door", new Color(0.60f, 0.35f, 0.15f));
                 case TileType.ItemLocation: return SpriteLibrary.Get("tile_item", new Color(0.35f, 0.50f, 0.90f));
                 case TileType.Goal:         return SpriteLibrary.Get("tile_goal", new Color(0.20f, 0.90f, 0.40f));
-                case TileType.VineSource:   return SpriteLibrary.Get("tile_vine_source", new Color(0.55f, 0.30f, 0.15f));
+                case TileType.VineSource:   return SpriteLibrary.Get("tile_floor", new Color(0.18f, 0.20f, 0.24f)); // 藤蔓源：floor 之上叠藤蔓（见 GameManager）
                 default:                    return SpriteLibrary.Get("tile_floor", new Color(0.18f, 0.20f, 0.24f));
             }
         }
@@ -155,6 +160,30 @@ namespace GrowGame
             float halfH = h * ts / 2f + cameraPadding;
             float halfW = w * ts / 2f + cameraPadding;
             cam.orthographicSize = Mathf.Max(halfH, halfW / cam.aspect);
+        }
+
+        /// <summary>创建铺满整个地图的背景图，用 backgroundTint 上色（DBDBDB 略微压暗）。</summary>
+        void CreateBackground(int w, int h, float ts)
+        {
+            var sprite = SpriteLibrary.Get("background", new Color(0.85f, 0.85f, 0.85f));
+            if (sprite == null) return;
+
+            var go = new GameObject("Background");
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = sprite;
+            sr.color = backgroundTint;  // DBDBDB：略微压暗
+            sr.sortingOrder = -10;      // 位于所有格子之下
+
+            // 铺满整个地图区域：保持宽高比，用「覆盖」缩放让背景填满地图（超出部分作为底图无妨）
+            var size = sprite.bounds.size;
+            if (size.x <= 0f || size.y <= 0f) return;
+
+            float mapW = w * ts;
+            float mapH = h * ts;
+            float scale = Mathf.Max(mapW / size.x, mapH / size.y);
+
+            go.transform.position = new Vector3((w - 1) * ts / 2f, -(h - 1) * ts / 2f, 0f);
+            go.transform.localScale = Vector3.one * scale;
         }
     }
 }
