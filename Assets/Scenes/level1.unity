@@ -153,14 +153,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c573000c1115ac4eabe85e948bf4f47, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  levelFile: {fileID: 4900000, guid: 81c3ea8498b749a459ecf945937fc6bb, type: 3}
+  levelFile: {fileID: 4900000, guid: 7a4cc7e9b56022b4897659cef4b33892, type: 3}
   levelResourceName: 
   playerPrefab: {fileID: 3950823882495281191, guid: e649c7d500dca314b9a45eb46f84a07d, type: 3}
   monsterPrefab: {fileID: 362031607935976088, guid: ef7483843d9a2324eb4b2084b08dd83d, type: 3}
   cam: {fileID: 1890878847}
   autoFitCamera: 1
   cameraPadding: 1.5
-  backgroundTint: {r: 1, g: 0.8666667, b: 0.6509804, a: 1}
+  backgroundTint: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &6820444
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -180,13 +180,22 @@ MonoBehaviour:
   monsters: []
   bushCount: 1
   trapCount: 0
+  portalCount: 0
   bushGrowTurns: 3
   trapGrowTurns: 2
   trapHoldTurns: 2
+  showLevelIntro: 1
+  introSpriteName: item_bush
+  introTitle: "\u77F3\u6960\u82B1"
+  introDescription: "\u6563\u53D1\u7740\u53E4\u602A\u6C14\u5473\u7684\u82B1\uFF0C\u5927\u53D4\u770B\u89C1\u4F1A\u7ED5\u9053\n\u9700\u8981\u4E00\u4E9B\u65F6\u95F4\u751F\u957F\r\n\uFF08\u4E0D\u77E5\u9053\u4E3A\u4EC0\u4E48\u603B\u662F\u83AB\u540D\u5176\u5999\u51FA\u73B0\u5728\u4E00\u4E9B\u5B66\u6821\u91CC\uFF09\n\n\u6309
+    1 \u5728\u8BE5\u4F7F\u7528\u7684\u5730\u65B9\u79CD\u4E0B\r\n"
   stageDelay: 0.1
   monsterMoveDelay: 0.15
+  combProximity: 1
   defaultVineLength: 4
+  musicClipName: Project
   nextSceneName: level2
+  menuSceneName: menu
   winDelay: 1.5
 --- !u!4 &6820445
 Transform:

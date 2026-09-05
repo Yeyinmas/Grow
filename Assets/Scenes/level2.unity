@@ -160,7 +160,7 @@ MonoBehaviour:
   cam: {fileID: 1890878847}
   autoFitCamera: 1
   cameraPadding: 1.5
-  backgroundTint: {r: 1, g: 0.8666667, b: 0.6509804, a: 1}
+  backgroundTint: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &6820444
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -180,13 +180,21 @@ MonoBehaviour:
   monsters: []
   bushCount: 0
   trapCount: 2
+  portalCount: 0
   bushGrowTurns: 3
   trapGrowTurns: 2
   trapHoldTurns: 2
+  showLevelIntro: 1
+  introSpriteName: item_trap
+  introTitle: "\u571F\u8C46\u5C0F\u5F1F"
+  introDescription: "\u8001\u5927\u968F\u8EAB\u643A\u5E26\u7684\u5C0F\u5F1F\uFF0C\u79CD\u4E0B\u4F5C\u4E3A\u8BF1\u9975\u4F1A\u5438\u5F15\u5927\u53D4\u4E00\u6BB5\u65F6\u95F4\n\u957F\u5F97\u5F88\u5FEB\r\n\uFF08\u8FD9\u6837\u771F\u7684\u597D\u5417\u2026\u2026\uFF09\r\n\n\u63092\u5728\u8BE5\u4F7F\u7528\u7684\u5730\u65B9\u79CD\u4E0B"
   stageDelay: 0.1
   monsterMoveDelay: 0.15
+  combProximity: 1
   defaultVineLength: 4
+  musicClipName: Project
   nextSceneName: level3
+  menuSceneName: menu
   winDelay: 1.5
 --- !u!4 &6820445
 Transform:

@@ -11,7 +11,7 @@ namespace GrowGame
         public Vector2Int Coord;
         public TileType Type;
 
-        /// <summary>格子上放置的道具（灌木丛 / 陷阱），无则 null。</summary>
+        /// <summary>格子上放置的道具（灌木丛 / 陷阱 / 传送道具），无则 null。</summary>
         public PlacedItem PlacedItem;
 
         /// <summary>门是否已打开（仅 Type == Door 时有效）。</summary>

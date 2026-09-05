@@ -123,7 +123,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &3000000
+--- !u!1 &6820442
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -131,59 +131,129 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3000002}
-  - component: {fileID: 3000001}
+  - component: {fileID: 6820445}
+  - component: {fileID: 6820444}
+  - component: {fileID: 6820443}
   m_Layer: 0
-  m_Name: Menu
+  m_Name: GameManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &3000001
+--- !u!114 &6820443
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3000000}
+  m_GameObject: {fileID: 6820442}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a7f3c2d1e5b84907a1b2c3d4e5f60718, type: 3}
+  m_Script: {fileID: 11500000, guid: 4c573000c1115ac4eabe85e948bf4f47, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  firstLevelSceneName: level1
-  musicClipName: Project
+  levelFile: {fileID: 4900000, guid: f5ead1e48637d4446ab9f8b76c466680, type: 3}
+  levelResourceName: 
+  playerPrefab: {fileID: 3950823882495281191, guid: e649c7d500dca314b9a45eb46f84a07d, type: 3}
+  monsterPrefab: {fileID: 362031607935976088, guid: ef7483843d9a2324eb4b2084b08dd83d, type: 3}
+  cam: {fileID: 1890878847}
+  autoFitCamera: 1
+  cameraPadding: 1.5
   backgroundTint: {r: 1, g: 1, b: 1, a: 1}
-  backgroundTileScale: 1
-  openingImageNames:
-  - manga1
-  - manga2
-  - manga3
-  - manga4
-  openingPanelEnterDuration: 1
-  openingPanelInterval: 1
-  openingFirstThreeEnterScreenRatio: 0.2
-  openingFourthEnterDuration: 1
-  openingGroupShiftDuration: 0.8
-  openingGroupShiftScreenRatio: 0.644
-  openingHorizontalOffsetScreenRatio: 0.306
-  openingImageScale: 3.65
-  openingFinalHoldDuration: 3
---- !u!4 &3000002
+--- !u!114 &6820444
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6820442}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6e192e6779a8874bbf877dd9ae7f10f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tileSize: 1
+  spriteScale: 1
+  characterYOffset: 0.2
+  player: {fileID: 0}
+  monsters: []
+  bushCount: 1
+  trapCount: 0
+  portalCount: 1
+  bushGrowTurns: 3
+  trapGrowTurns: 2
+  trapHoldTurns: 2
+  showLevelIntro: 0
+  introSpriteName: tile_portal
+  introTitle: "\u65B0\u9053\u5177"
+  introDescription: "\u5728\u8FD9\u91CC\u586B\u5199\u9053\u5177\u7684\u4F7F\u7528\u65B9\u6CD5\u3002"
+  stageDelay: 0.1
+  monsterMoveDelay: 0.15
+  combProximity: 1
+  defaultVineLength: 4
+  musicClipName: Project
+  nextSceneName: level10
+  menuSceneName: menu
+  winDelay: 1.5
+--- !u!4 &6820445
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3000000}
+  m_GameObject: {fileID: 6820442}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 1.0417229, y: -0.8407983, z: 0.0007306859}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1464139911
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1464139913}
+  - component: {fileID: 1464139912}
+  m_Layer: 0
+  m_Name: UI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1464139912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1464139911}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 944af59ccd0d0d844ac26d538430b75f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1464139913
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1464139911}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.0417229, y: -0.8407983, z: 0.0007306859}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1890878845
 GameObject:
@@ -221,7 +291,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
-  m_BackGroundColor: {r: 1, g: 0.8666667, b: 0.6509804, a: 0}
+  m_BackGroundColor: {r: 1, g: 0.86666673, b: 0.6509804, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0

@@ -34,9 +34,10 @@ namespace GrowGame
             if (gm == null) return;
             if (gm.Phase != GamePhase.PlayerTurn) return;
 
-            // 放置道具：站在道具使用地（D 格）上时按 1 / 2
+            // 放置道具：站在道具使用地（D 格）上时按 1 / 2 / 3
             if (Input.GetKeyDown(KeyCode.Alpha1)) gm.TryPlaceItem(ItemKind.Bush);
             if (Input.GetKeyDown(KeyCode.Alpha2)) gm.TryPlaceItem(ItemKind.Trap);
+            if (Input.GetKeyDown(KeyCode.Alpha3)) gm.TryPlaceItem(ItemKind.Portal);
 
             // 移动：WASD 或方向键，一次只能选一个方向
             Vector2Int dir = Vector2Int.zero;
