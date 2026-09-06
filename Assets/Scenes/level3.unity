@@ -160,7 +160,7 @@ MonoBehaviour:
   cam: {fileID: 1890878847}
   autoFitCamera: 1
   cameraPadding: 1.5
-  backgroundTint: {r: 1, g: 0.8666667, b: 0.6509804, a: 1}
+  backgroundTint: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &6820444
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -180,13 +180,17 @@ MonoBehaviour:
   monsters: []
   bushCount: 1
   trapCount: 1
+  portalCount: 0
   bushGrowTurns: 3
   trapGrowTurns: 2
   trapHoldTurns: 2
   stageDelay: 0.1
   monsterMoveDelay: 0.15
+  combProximity: 1
   defaultVineLength: 4
+  musicClipName: Project
   nextSceneName: level4
+  menuSceneName: menu
   winDelay: 1.5
 --- !u!4 &6820445
 Transform:

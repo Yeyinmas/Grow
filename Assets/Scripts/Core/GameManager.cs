@@ -11,7 +11,8 @@ namespace GrowGame
         PlayerTurn,  // 玩家回合：等待输入
         MonsterTurn, // 怪物回合：怪物依次行动
         Won,         // 胜利
-        Lost         // 失败
+        Lost,        // 失败
+        LevelIntro   // 关卡开始说明
     }
 
     /// <summary>
@@ -44,9 +45,17 @@ namespace GrowGame
         [Header("道具配置")]
         public int bushCount = 2;      // 灌木丛初始数量
         public int trapCount = 1;      // 困怪陷阱初始数量
+        public int portalCount = 1;    // 传送道具初始数量
         public int bushGrowTurns = 3;  // 灌木丛生长 X 回合后堵路
         public int trapGrowTurns = 2;  // 陷阱生长 X 回合后成熟（成熟前被怪物踩过会被踩掉）
         public int trapHoldTurns = 2;  // 陷阱困住怪物 X 回合
+
+        [Header("关卡开始说明")]
+        public bool showLevelIntro = false;
+        public string introSpriteName = "tile_portal";
+        public string introTitle = "新道具";
+        [TextArea(2, 6)]
+        public string introDescription = "在这里填写道具的使用方法。";
 
         [Header("流程")]
         [Tooltip("阶段之间的展示间隔（秒）：玩家移动 → 植物生长 → 敌人移动 之间各等待该时长，期间玩家输入无效。")]
@@ -104,6 +113,8 @@ namespace GrowGame
 
         private void Update()
         {
+            if (Phase == GamePhase.LevelIntro && Input.GetKeyDown(KeyCode.E))
+                BeginPlayerTurn();
             if (Input.GetKeyDown(KeyCode.R)) Restart();
             if (Input.GetKeyDown(KeyCode.Escape) && !string.IsNullOrEmpty(menuSceneName))
                 SceneManager.LoadScene(menuSceneName);
@@ -113,6 +124,37 @@ namespace GrowGame
         public void Restart()
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+
+        public void LoadMenu()
+        {
+            if (!string.IsNullOrEmpty(menuSceneName))
+                SceneManager.LoadScene(menuSceneName);
+        }
+
+        public bool CanLoadAdjacentLevel(int offset)
+        {
+            return TryGetAdjacentLevelName(offset, out _);
+        }
+
+        public void LoadAdjacentLevel(int offset)
+        {
+            if (TryGetAdjacentLevelName(offset, out string sceneName))
+                SceneManager.LoadScene(sceneName);
+        }
+
+        bool TryGetAdjacentLevelName(int offset, out string sceneName)
+        {
+            sceneName = null;
+            string current = SceneManager.GetActiveScene().name;
+            if (!current.StartsWith("level")) return false;
+            if (!int.TryParse(current.Substring(5), out int levelNumber)) return false;
+
+            int targetNumber = levelNumber + offset;
+            if (targetNumber <= 0) return false;
+
+            sceneName = "level" + targetNumber;
+            return Application.CanStreamedLevelBeLoaded(sceneName);
         }
 
         // ---------- 坐标工具 ----------
@@ -173,7 +215,10 @@ namespace GrowGame
             foreach (var v in vines)
                 SetVineBody(v.Pos, v.Direction);
 
-            BeginPlayerTurn();
+            if (showLevelIntro)
+                Phase = GamePhase.LevelIntro;
+            else
+                BeginPlayerTurn();
         }
 
         // ---------- 玩家回合 ----------
@@ -202,9 +247,31 @@ namespace GrowGame
         public bool TryMovePlayer(Vector2Int dir)
         {
             if (Phase != GamePhase.PlayerTurn) return false;
+            if (dir == Vector2Int.zero) return false;
+
+            var originCell = Grid[player.Coord.x, player.Coord.y];
+            var portal = originCell.PlacedItem != null && originCell.PlacedItem.Kind == ItemKind.Portal
+                ? originCell.PlacedItem
+                : null;
 
             var target = player.Coord + dir;
-            if (!IsWalkable(target)) return false;
+            if (portal != null)
+            {
+                target = player.Coord;
+                var next = target + dir;
+                while (IsWalkable(next))
+                {
+                    target = next;
+                    if (IsMonsterAt(next)) break;
+                    next += dir;
+                }
+
+                if (target == player.Coord) return false;
+            }
+            else if (!IsWalkable(target))
+            {
+                return false;
+            }
 
             // 主动走进怪物格：视为被抓住
             if (IsMonsterAt(target))
@@ -245,6 +312,7 @@ namespace GrowGame
 
             if (kind == ItemKind.Bush && bushCount <= 0) return false;
             if (kind == ItemKind.Trap && trapCount <= 0) return false;
+            if (kind == ItemKind.Portal && portalCount <= 0) return false;
 
             var item = new PlacedItem { Kind = kind, Pos = player.Coord };
             if (kind == ItemKind.Bush)
@@ -252,10 +320,15 @@ namespace GrowGame
                 bushCount--;
                 item.GrowTurns = bushGrowTurns;
             }
-            else
+            else if (kind == ItemKind.Trap)
             {
                 trapCount--;
                 item.GrowTurns = trapGrowTurns; // 陷阱也需要生长时间
+            }
+            else
+            {
+                portalCount--;
+                item.GrowTurns = 0;
             }
 
             cell.PlacedItem = item;
@@ -269,12 +342,16 @@ namespace GrowGame
 
         GameObject CreateItemVisual(PlacedItem item)
         {
-            var go = new GameObject(item.Kind == ItemKind.Bush ? "Bush" : "Trap");
+            string objectName = item.Kind == ItemKind.Bush ? "Bush" :
+                                item.Kind == ItemKind.Trap ? "Trap" : "Portal";
+            var go = new GameObject(objectName);
             go.transform.position = CellToWorld(item.Pos);
             ApplyVisualScale(go);
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sortingOrder = 1;
-            sr.sprite = SpriteLibrary.Get("tile_item_wait", new Color(0.45f, 0.72f, 0.35f)); // 刚种下：生长中的样子
+            sr.sprite = item.Kind == ItemKind.Portal
+                ? SpriteLibrary.Get("tile_portal", new Color(0.55f, 0.30f, 0.90f))
+                : SpriteLibrary.Get("tile_item_wait", new Color(0.45f, 0.72f, 0.35f));
             return go;
         }
 
@@ -286,8 +363,10 @@ namespace GrowGame
             if (sr == null) return;
             if (item.Kind == ItemKind.Bush)
                 sr.sprite = SpriteLibrary.Get("item_bush", new Color(0.25f, 0.70f, 0.30f));
-            else
+            else if (item.Kind == ItemKind.Trap)
                 sr.sprite = SpriteLibrary.Get("item_trap", new Color(0.80f, 0.50f, 0.20f));
+            else
+                sr.sprite = SpriteLibrary.Get("tile_portal", new Color(0.55f, 0.30f, 0.90f));
         }
 
         void RemoveItem(PlacedItem item)
@@ -330,6 +409,12 @@ namespace GrowGame
                 // 追到玩家 -> 失败
                 if (n == player.Coord)
                 {
+                    var caughtCell = Grid[n.x, n.y];
+                    if (caughtCell.PlacedItem != null && caughtCell.PlacedItem.Kind == ItemKind.Portal)
+                    {
+                        RemoveItem(caughtCell.PlacedItem);
+                        caughtCell.SetWalkable();
+                    }
                     Lose("被怪物抓住了！");
                     yield break;
                 }
@@ -356,11 +441,17 @@ namespace GrowGame
                         RemoveItem(item);
                         cell.SetWalkable();
                     }
+                    else if (item.Kind == ItemKind.Portal)
+                    {
+                        RemoveItem(item);
+                        cell.SetWalkable();
+                    }
                 }
 
                 yield return new WaitForSeconds(monsterMoveDelay); // 每个怪物之间的小间隔
             }
 
+            GrowVines();
             BeginPlayerTurn();
         }
 
@@ -371,6 +462,8 @@ namespace GrowGame
             for (int i = placedItems.Count - 1; i >= 0; i--)
             {
                 var it = placedItems[i];
+                if (it.Kind == ItemKind.Portal) continue;
+
                 it.GrowTurns--;
                 if (it.GrowTurns > 0) continue; // 尚未成熟，继续生长
 
@@ -389,7 +482,6 @@ namespace GrowGame
                 }
             }
 
-            GrowVines();
         }
 
         // ---------- 藤蔓生长 ----------
@@ -414,6 +506,14 @@ namespace GrowGame
                     SetVineBody(prevTip, v.Direction);
                 }
 
+                var nextCell = Grid[next.x, next.y];
+                if (nextCell.Type == TileType.ItemLocation)
+                {
+                    if (nextCell.PlacedItem != null)
+                        RemoveItem(nextCell.PlacedItem);
+                    nextCell.SetWalkable();
+                }
+
                 SetVineTip(next, v.Direction);
                 vineGrown[i]++;
             }
@@ -424,7 +524,9 @@ namespace GrowGame
             if (!InBounds(c)) return false;
 
             var cell = Grid[c.x, c.y];
-            if (cell.Type != TileType.Walkable) return false; // 只能长到道路格
+            bool isDestructibleItemCell = cell.Type == TileType.ItemLocation &&
+                (cell.PlacedItem == null || cell.PlacedItem.Kind != ItemKind.Bush);
+            if (cell.Type != TileType.Walkable && !isDestructibleItemCell) return false;
             if (!cell.IsWalkable) return false;               // 已被堵住
             if (player != null && player.Coord == c) return false; // 玩家占用
             foreach (var m in monsters)

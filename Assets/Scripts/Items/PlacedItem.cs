@@ -6,7 +6,8 @@ namespace GrowGame
     public enum ItemKind
     {
         Bush, // 道具一：灌木丛，生长 X 回合后堵住一块路
-        Trap  // 道具二：困怪陷阱，生长 X 回合后成熟，怪物踩入被困
+        Trap, // 道具二：困怪陷阱，生长 X 回合后成熟，怪物踩入被困
+        Portal // 道具三：下一回合按移动方向传送到障碍前
     }
 
     /// <summary>
@@ -18,7 +19,7 @@ namespace GrowGame
         public ItemKind Kind;
         public Vector2Int Pos;
 
-        /// <summary>剩余生长回合（灌木丛与陷阱通用），减到 0 后成熟。成熟前被敌人踩过会被踩掉。</summary>
+        /// <summary>剩余生长回合（灌木丛与陷阱通用），减到 0 后成熟。传送道具不使用此字段。</summary>
         public int GrowTurns;
 
         /// <summary>陷阱是否已被怪物触发（触发后消耗）。</summary>

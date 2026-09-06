@@ -23,8 +23,16 @@ namespace GrowGame
         public float cameraPadding = 1.5f;
 
         [Header("背景")]
-        [Tooltip("整张地图的背景图（Resources/Sprites/background），用该颜色叠加；DBDBDB 即把图略微压暗。")]
-        public Color backgroundTint = new Color(255f / 255f, 221f / 255f, 166f / 255f, 1f);
+        [Tooltip("整张地图的背景图（Resources/Sprites/background）叠加色，默认白色表示保持原图颜色。")]
+        public Color backgroundTint = Color.white;
+
+        private SpriteRenderer _backgroundRenderer;
+        private float _backgroundTileScale = 1f;
+        private int _mapWidth;
+        private int _mapHeight;
+        private float _mapTileSize;
+        private int _lastScreenWidth = -1;
+        private int _lastScreenHeight = -1;
 
         private void Start()
         {
@@ -85,9 +93,25 @@ namespace GrowGame
             foreach (var e in data.EnemyStarts)
                 monsters.Add(SpawnMonster(gm, e));
 
-            CreateBackground(data.Width, data.Height, ts);
             FitCamera(data.Width, data.Height, ts);
+            CreateBackground(data.Width, data.Height, ts);
+            _mapWidth = data.Width;
+            _mapHeight = data.Height;
+            _mapTileSize = ts;
+            _lastScreenWidth = Screen.width;
+            _lastScreenHeight = Screen.height;
             gm.Setup(cells, player, monsters, data.VineSources);
+        }
+
+        private void LateUpdate()
+        {
+            if (_backgroundRenderer == null) return;
+            if (_lastScreenWidth == Screen.width && _lastScreenHeight == Screen.height) return;
+
+            _lastScreenWidth = Screen.width;
+            _lastScreenHeight = Screen.height;
+            FitCamera(_mapWidth, _mapHeight, _mapTileSize);
+            FitBackgroundToCamera();
         }
 
         PlayerController SpawnPlayer(GameManager gm, Vector2Int pos)
@@ -155,6 +179,7 @@ namespace GrowGame
             if (cam == null) return;
 
             cam.orthographic = true;
+            cam.backgroundColor = Color.white;
             cam.transform.position = new Vector3((w - 1) * ts / 2f, -(h - 1) * ts / 2f, -10f);
 
             float halfH = h * ts / 2f + cameraPadding;
@@ -162,7 +187,7 @@ namespace GrowGame
             cam.orthographicSize = Mathf.Max(halfH, halfW / cam.aspect);
         }
 
-        /// <summary>创建铺满整个地图的背景图，用 backgroundTint 上色（DBDBDB 略微压暗）。</summary>
+        /// <summary>创建铺满整个地图的背景图，并用 backgroundTint 上色。</summary>
         void CreateBackground(int w, int h, float ts)
         {
             var sprite = SpriteLibrary.Get("background", new Color(0.85f, 0.85f, 0.85f));
@@ -171,8 +196,11 @@ namespace GrowGame
             var go = new GameObject("Background");
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = sprite;
-            sr.color = backgroundTint;  // DBDBDB：略微压暗
+            sr.color = backgroundTint;
             sr.sortingOrder = -10;      // 位于所有格子之下
+            sr.drawMode = SpriteDrawMode.Tiled;
+            sr.tileMode = SpriteTileMode.Continuous;
+            _backgroundRenderer = sr;
 
             // 铺满整个地图区域：保持宽高比，用「覆盖」缩放让背景填满地图（超出部分作为底图无妨）
             var size = sprite.bounds.size;
@@ -180,10 +208,30 @@ namespace GrowGame
 
             float mapW = w * ts;
             float mapH = h * ts;
-            float scale = Mathf.Max(mapW / size.x, mapH / size.y);
+            _backgroundTileScale = Mathf.Max(mapW / size.x, mapH / size.y);
 
             go.transform.position = new Vector3((w - 1) * ts / 2f, -(h - 1) * ts / 2f, 0f);
-            go.transform.localScale = Vector3.one * scale;
+            go.transform.localScale = Vector3.one * _backgroundTileScale;
+            FitBackgroundToCamera();
+        }
+
+        void FitBackgroundToCamera()
+        {
+            if (_backgroundRenderer == null) return;
+            if (cam == null) cam = Camera.main;
+            if (cam == null || _backgroundTileScale <= 0f) return;
+
+            cam.backgroundColor = Color.white;
+            float viewH = cam.orthographicSize * 2f;
+            float viewW = viewH * cam.aspect;
+            const float edgeMargin = 0.2f;
+            _backgroundRenderer.size = new Vector2(
+                (viewW + edgeMargin) / _backgroundTileScale,
+                (viewH + edgeMargin) / _backgroundTileScale);
+            _backgroundRenderer.transform.position = new Vector3(
+                cam.transform.position.x,
+                cam.transform.position.y,
+                0f);
         }
     }
 }
