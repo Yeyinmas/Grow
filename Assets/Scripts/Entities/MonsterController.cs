@@ -54,6 +54,7 @@ namespace GrowGame
 
                 _intentShadowStyle = new GUIStyle(_intentStyle);
                 _intentShadowStyle.normal.textColor = Color.black;
+
             }
 
             bool isArrow = label == "←" || label == "→" || label == "↑" || label == "↓";

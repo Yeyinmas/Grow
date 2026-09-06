@@ -184,10 +184,14 @@ MonoBehaviour:
   bushGrowTurns: 3
   trapGrowTurns: 2
   trapHoldTurns: 2
+  showLevelIntro: 0
+  introSpriteName: tile_portal
+  introTitle: "\u65B0\u9053\u5177"
+  introDescription: "\u5728\u8FD9\u91CC\u586B\u5199\u9053\u5177\u7684\u4F7F\u7528\u65B9\u6CD5\u3002"
   stageDelay: 0.1
   monsterMoveDelay: 0.15
   combProximity: 1
-  defaultVineLength: 4
+  defaultVineLength: 5
   musicClipName: Project
   nextSceneName: level9
   menuSceneName: menu

@@ -178,12 +178,16 @@ MonoBehaviour:
   characterYOffset: 0.2
   player: {fileID: 0}
   monsters: []
-  bushCount: 1
-  trapCount: 1
+  bushCount: 0
+  trapCount: 0
   portalCount: 0
   bushGrowTurns: 3
   trapGrowTurns: 2
   trapHoldTurns: 2
+  showLevelIntro: 0
+  introSpriteName: tile_portal
+  introTitle: "\u65B0\u9053\u5177"
+  introDescription: "\u5728\u8FD9\u91CC\u586B\u5199\u9053\u5177\u7684\u4F7F\u7528\u65B9\u6CD5\u3002"
   stageDelay: 0.1
   monsterMoveDelay: 0.15
   combProximity: 1

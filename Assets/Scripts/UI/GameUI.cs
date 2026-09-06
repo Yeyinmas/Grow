@@ -86,6 +86,7 @@ namespace GrowGame
                 fontStyle = FontStyle.Bold,
             };
             _introHintStyle.normal.textColor = new Color(1f, 0.9f, 0.35f);
+
         }
 
         void OnGUI()

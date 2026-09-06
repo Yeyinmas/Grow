@@ -11,6 +11,7 @@ namespace GrowGame
         public Vector2Int Coord;
 
         private SpriteRenderer _renderer;
+        private Vector2Int _bufferedDirection;
 
         private void Awake()
         {
@@ -32,7 +33,20 @@ namespace GrowGame
         {
             var gm = GameManager.Instance;
             if (gm == null) return;
-            if (gm.Phase != GamePhase.PlayerTurn) return;
+
+            Vector2Int pressedDirection = ReadDirectionInput();
+            if (gm.Phase == GamePhase.MonsterTurn)
+            {
+                if (pressedDirection != Vector2Int.zero)
+                    _bufferedDirection = pressedDirection;
+                return;
+            }
+
+            if (gm.Phase != GamePhase.PlayerTurn)
+            {
+                _bufferedDirection = Vector2Int.zero;
+                return;
+            }
 
             // 放置道具：站在道具使用地（D 格）上时按 1 / 2 / 3
             if (Input.GetKeyDown(KeyCode.Alpha1)) gm.TryPlaceItem(ItemKind.Bush);
@@ -40,13 +54,19 @@ namespace GrowGame
             if (Input.GetKeyDown(KeyCode.Alpha3)) gm.TryPlaceItem(ItemKind.Portal);
 
             // 移动：WASD 或方向键，一次只能选一个方向
-            Vector2Int dir = Vector2Int.zero;
-            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) dir = new Vector2Int(0, -1);
-            else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow)) dir = new Vector2Int(0, 1);
-            else if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow)) dir = new Vector2Int(-1, 0);
-            else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow)) dir = new Vector2Int(1, 0);
+            Vector2Int dir = pressedDirection != Vector2Int.zero ? pressedDirection : _bufferedDirection;
+            _bufferedDirection = Vector2Int.zero;
 
             if (dir != Vector2Int.zero) gm.TryMovePlayer(dir);
+        }
+
+        private static Vector2Int ReadDirectionInput()
+        {
+            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) return new Vector2Int(0, -1);
+            if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow)) return new Vector2Int(0, 1);
+            if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow)) return new Vector2Int(-1, 0);
+            if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow)) return new Vector2Int(1, 0);
+            return Vector2Int.zero;
         }
     }
 }
